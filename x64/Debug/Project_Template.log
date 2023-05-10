@@ -1,0 +1,21 @@
+﻿  glad.c
+  cube.cpp
+  glslprogram.cpp
+  glutils.cpp
+  objmesh.cpp
+C:\Users\callu\Documents\COMP3015\COMP3015-CW1\helper\objmesh.cpp(191,43): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\callu\Documents\COMP3015\COMP3015-CW1\helper\objmesh.cpp(197,50): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\callu\Documents\COMP3015\COMP3015-CW1\helper\objmesh.cpp(201,45): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+  plane.cpp
+  skybox.cpp
+  stb_image.cpp
+  teapot.cpp
+  texture.cpp
+  torus.cpp
+  trianglemesh.cpp
+  main.cpp
+  scenebasic_uniform.cpp
+C:\Users\callu\Documents\COMP3015\COMP3015-CW1\scenebasic_uniform.cpp(465,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\callu\Documents\COMP3015\COMP3015-CW1\scenebasic_uniform.cpp(466,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  Generating Code...
+  Project_Template.vcxproj -> C:\Users\callu\Documents\COMP3015\COMP3015-CW1\x64\Debug\Project_Template.exe

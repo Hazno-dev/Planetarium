@@ -41,7 +41,7 @@ uniform bool bSinWaveAnim = false;
 uniform float Time;
 uniform float Frequency = 2.5;
 uniform float Velocity = 2.5;
-uniform float Amplitude = 0.1;
+uniform float Amplitude = 0.15;
 
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;

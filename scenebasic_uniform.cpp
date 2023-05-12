@@ -13,13 +13,14 @@ using std::endl;
 #include <glm/gtc/matrix_transform.hpp>
 #include "helper/glutils.h"
 #include "helper/texture.h"
+#include "helper/particleutils.h"
 
 using glm::vec3;
 using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : plane(60.0f, 60.0f, 1, 1), skybox(350.0f)
+SceneBasic_Uniform::SceneBasic_Uniform() : plane(60.0f, 60.0f, 1, 1), skybox(350.0f), particleLifetime(5.5f), nParticles(500), emitterPos(0, 0, 0), emitterDir(-1, 0, 0)
 {
     //Load meshes
     Planet1Mesh = ObjMesh::loadWithAdjacency("media/Meshes/Planet.obj", true, true);
@@ -51,6 +52,8 @@ void SceneBasic_Uniform::initScene()
     model = mat4(1.0f);
     view = glm::lookAt(vec3(0.f, 0.f, 6.f), vec3(0.f, 0.f, 0.f), vec3(0.f, 1.f, 0.f));
     projection = mat4(1.f);
+
+    setupParticles();
 
     setupFBO(); //we call the setup for our fbo
 
@@ -120,6 +123,9 @@ void SceneBasic_Uniform::initScene()
     PlaneTex =
         Texture::loadTexture("media/PlaneTextures/PlaneTex.png");
 
+    ParticleTex =
+		Texture::loadTexture("media/VFX/bluewater.png");
+
     GLuint SkyboxTex = Texture::loadHdrCubeMap("media/Skybox/space");
 }
 
@@ -134,6 +140,69 @@ void SceneBasic_Uniform::setupCamera()
     lastY = height / 2;
     yaw = -90.0f;
     pitch = 0.0f;
+}
+
+void SceneBasic_Uniform::setupParticles()
+{
+    glGenBuffers(1, &initVel);
+	glGenBuffers(1, &startTime);
+    
+    //allocate space for buffers
+	int size = nParticles * sizeof(float);
+	glBindBuffer(GL_ARRAY_BUFFER, initVel);
+	glBufferData(GL_ARRAY_BUFFER, size * 3, NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, startTime);
+	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
+
+    //fill the first velocity buffer withr andom velocities
+    glm::mat3 emitterBasis = ParticleUtils::makeArbitraryBasis(emitterDir);
+	vec3 v(0.0f);
+	float velocity, theta, phi;
+	std::vector<GLfloat> data(nParticles * 3);
+    for (uint32_t i = 0; i < nParticles; i++) {
+		theta = glm::mix(0.0f, glm::pi<float>() / 20.0f, randFloat());
+		phi = glm::mix(0.0f, glm::two_pi<float>(), randFloat());
+
+		v.x = sinf(theta) * cosf(phi);
+		v.y = cosf(theta);
+		v.z = sinf(theta) * sinf(phi);
+        
+		velocity = glm::mix(1.25f, 1.5f, randFloat());
+		v = glm::normalize(emitterBasis * v) * velocity;
+        
+		data[3 * i] = v.x;
+		data[3 * i + 1] = v.y;
+		data[3 * i + 2] = v.z;
+    }
+    
+	glBindBuffer(GL_ARRAY_BUFFER, initVel);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, size * 3, data.data());
+
+	//fill the start time buffer
+	float rate = particleLifetime / nParticles;
+	for (uint32_t i = 0; i < nParticles; i++) {
+		data[i] = rate * i;
+	}
+    
+	glBindBuffer(GL_ARRAY_BUFFER, startTime);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, nParticles * sizeof(float), data.data());
+    
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
+	glGenVertexArrays(1, &particles);
+	glBindVertexArray(particles);
+	glBindBuffer(GL_ARRAY_BUFFER, initVel);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(0);
+    
+	glBindBuffer(GL_ARRAY_BUFFER, startTime);
+	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(1);
+    
+	glVertexAttribDivisor(0, 1);
+	glVertexAttribDivisor(1, 1);
+
+	glBindVertexArray(0);
 }
 
 //SetupFBO: Setup the FBO for HDR rendering. It will create/bind the FBO, create a depth buffer and a HDR buffer.
@@ -219,6 +288,9 @@ void SceneBasic_Uniform::compile()
         Alphaprog.compileShader("shader/basic_alpha.vert");
         Alphaprog.compileShader("shader/basic_alpha.frag");
         Alphaprog.link();
+		ParticleProg.compileShader("shader/basic_particle.vert");
+		ParticleProg.compileShader("shader/basic_particle.frag");
+		ParticleProg.link();
         Skyboxprog.compileShader("shader/skybox.vert");
         Skyboxprog.compileShader("shader/skybox.frag");
         Skyboxprog.link();
@@ -248,6 +320,7 @@ void SceneBasic_Uniform::update( float t )
     Planet1Angle = t * Planet1RotationSpeed;
     Planet2Angle = t * Planet2RotationSpeed;
     moonAngle = t * moonRotationSpeed;
+	meteorAngle = t * meteorRotationSpeed;
     crystalOffset = sin(t * crystalLevSpeed) * crystalLevAmplitude;
 
 }
@@ -273,6 +346,11 @@ void SceneBasic_Uniform::render()
     //Skybox shader pass - Skybox.Vert/Frag
     Skyboxprog.use();
     Pass3();
+
+    //Particle pass - BasicParticle.Vert/Frag
+    ParticleProg.use();
+    Pass5();
+
 
     //HDR shader pass - BasicHDR.Vert/Frag
     HDRprog.use();
@@ -314,6 +392,14 @@ void SceneBasic_Uniform::Pass1()
     model = glm::scale(model, vec3(0.4f, 0.4f, 0.4f));
     setMatrices();
     MoonMesh->render();
+
+    //Use the same mesh&&textures for moon
+	model = mat4(1.0f);
+	model = glm::rotate(model, glm::radians(meteorAngle), vec3(0.0f, 1.0f, 0.0f));
+	model = glm::translate(model, vec3(meteorDistance, 0.0f, 0.0f));
+    model = glm::scale(model, vec3(0.6f, 0.6f, 0.6f));
+	setMatrices();
+	MoonMesh->render();
 
     prog.setUniform("Material.Ks", 1.0f, 1.0f, 1.0f);
 
@@ -363,6 +449,25 @@ void SceneBasic_Uniform::Pass4()
     glBindVertexArray(0);
 }
 
+void SceneBasic_Uniform::Pass5()
+{
+    glDepthMask(GL_FALSE);
+    
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    setTextures(ParticleTex, ParticleTex);
+    
+	model = mat4(1.0f);
+    setParticleMatrices();
+    
+	glBindVertexArray(particles);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
+	glBindVertexArray(0);
+
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+}
+
 // computeLogAveLuminance: Computes the average logarithmic luminance of the rendered scene for tone mapping, using a downsampled set of pixels.
 // This will only run for every 64 pixels as running it on every pixel can be very costly (I'm on an rtx 3080 and it tanked FPS massively)
 void SceneBasic_Uniform::computeLogAveLuminance()
@@ -387,6 +492,11 @@ void SceneBasic_Uniform::computeLogAveLuminance()
 
 }
 
+float SceneBasic_Uniform::randFloat()
+{
+	return rand.nextFloat();
+}
+
 // resize: Updates the viewport and projection matrix according to the new window dimensions.
 void SceneBasic_Uniform::resize(int w, int h)
 {
@@ -406,6 +516,16 @@ void SceneBasic_Uniform::setMatrices()
     prog.setUniform("ProjectionMatrix", projection);
 
 
+}
+
+void SceneBasic_Uniform::setParticleMatrices()
+{
+    glm::mat4 mv = view * model;
+	ParticleProg.setUniform("Time", elapsedTime);
+	ParticleProg.setUniform("ParticleLifetime", particleLifetime);
+	ParticleProg.setUniform("EmitterPos", emitterPos);
+	ParticleProg.setUniform("MV", mv);
+	ParticleProg.setUniform("Projection", projection);
 }
 
 // setAlphaMatrices: Sets the model-view, normal, and model-view-projection matrices for the alpha shader program.

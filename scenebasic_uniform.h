@@ -9,6 +9,7 @@
 #include "helper/plane.h"
 #include "helper/objmesh.h"
 #include "helper/skybox.h"
+#include "helper/random.h"
 
 class SceneBasic_Uniform : public Scene
 {
@@ -26,6 +27,7 @@ public:
 private:
     // GLSL programs
     GLSLProgram prog;
+    GLSLProgram ParticleProg;
     GLSLProgram Alphaprog;
     GLSLProgram Skyboxprog;
     GLSLProgram HDRprog;
@@ -49,37 +51,48 @@ private:
     glm::vec3 Planet1Location;
     glm::vec3 Planet2Location;
     glm::vec3 moonLocation;
+	glm::vec3 meteorLocation;
     glm::vec4 Light1Pos;
     glm::vec4 Light2Pos;
     glm::vec4 Light3Pos;
     glm::vec3 SpotLightPos;
     glm::vec3 SpotLightDir;
+    glm::vec3 emitterPos, emitterDir;
 
     // Rotation and movement speeds
     float Planet1RotationSpeed = 20.f;
     float Planet2RotationSpeed = 10.f;
     float moonRotationSpeed = 25.0f;
     float crystalLevSpeed = 2.0f;
+    float meteorRotationSpeed = 20.f;
 
     // Distances and amplitudes
     float Planet1Distance = 12.0f;
     float Planet2Distance = 26.5f;
     float moonDistance = 3.0f;
+	float meteorDistance = 20.0f;
     float crystalLevAmplitude = 0.2f;
 
     // Rotation angles
     float Planet1Angle;
     float Planet2Angle;
     float moonAngle;
+	float meteorAngle;
     float crystalOffset;
-
+    
+    // Meteor Particles
+    Random rand;
+    GLuint initVel, startTime, particles, nParticles;
+    float particleLifetime;
+        
     // Textures
     GLuint Planet1BCTex, Planet1NMTex,
         Planet2BCTex, Planet2NMTex,
         MoonBCTex, MoonNMTex,
         PlaneTex, PlaneAlpha,
         CrystalBCTex, CrystalNMTex,
-        SkyboxTex;
+        SkyboxTex,
+        ParticleTex;
 
     // Skybox object
     SkyBox skybox;
@@ -89,6 +102,7 @@ private:
 
     // Private function declarations
     void setMatrices();
+    void setParticleMatrices();
     void setAlphaMatrices();
     void setSkyboxMatrices();
     void setHDRMatrices();
@@ -96,14 +110,18 @@ private:
     void setTextures(GLuint Tex1, GLuint Tex2);
     void compile();
 
+    void setupParticles();
     void setupFBO();
     void setupQuad();
     void computeLogAveLuminance();
+
+	float randFloat();
 
     void Pass1();
     void Pass2();
     void Pass3();
     void Pass4();
+    void Pass5();
 
 };
 

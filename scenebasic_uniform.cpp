@@ -283,6 +283,8 @@ void SceneBasic_Uniform::render()
 // Pass1: Sets the material properties, textures, and transformations for each mesh in the scene and renders them using the basic shader program.
 void SceneBasic_Uniform::Pass1()
 {
+    prog.setUniform("Time", elapsedTime);
+
     prog.setUniform("Material.Kd", 1.0f, 1.0f, 1.0f);
     prog.setUniform("Material.Ks", 1.05f, 1.05f, 1.05f);
     prog.setUniform("Material.Ka", 0.5f, 0.5f, 0.5f);
@@ -315,11 +317,13 @@ void SceneBasic_Uniform::Pass1()
 
     prog.setUniform("Material.Ks", 1.0f, 1.0f, 1.0f);
 
+    prog.setUniform("bSinWaveAnim", true);
     setTextures(CrystalBCTex, CrystalNMTex);
     model = mat4(1.0f);
     model = glm::translate(model, vec3(0.0f, crystalOffset, 0.0f));
     setMatrices();
     CrystalMesh->render();
+    prog.setUniform("bSinWaveAnim", false);
 }
 
 // Pass2: Sets the textures and transformations for the alpha blended plane and renders it using the alpha shader program.

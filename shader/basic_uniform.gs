@@ -36,7 +36,7 @@ uniform float PctExtend;
 //Consts
 //
 
-const bool bOulineOn = true;
+const bool bOulineOn = false;
 
 //
 //Functions

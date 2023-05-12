@@ -37,6 +37,12 @@ uniform struct SpotLightInfo {
     float Cutoff;
 } Spotlight;
 
+uniform bool bSinWaveAnim = false;
+uniform float Time;
+uniform float Frequency = 2.5;
+uniform float Velocity = 2.5;
+uniform float Amplitude = 0.1;
+
 uniform mat4 ModelViewMatrix;
 uniform mat3 NormalMatrix;
 uniform mat4 MVP;
@@ -54,8 +60,22 @@ void main()
     // Convert vertex position to camera space
     Position = (ModelViewMatrix * vec4(VertexPosition,1.0));
 
+    
+    
+    // SinWave animation if enabled 
+    vec4 VecPos = vec4(VertexPosition, 1.0);
+    vec4 VecNormal = vec4(VertexNormal, 1.0);
+    
+    if (bSinWaveAnim){
+        float u = Frequency * VecPos.x - Velocity * Time;
+        VecPos.y += Amplitude * sin(u);
+
+        float u1 = Frequency * VecNormal.x - Velocity * Time;
+        VecNormal.y += Amplitude * sin(u1);
+    }
+    
     // Calculate and normalize the transformed vertex normal
-    vec3 Normal = normalize(NormalMatrix * VertexNormal);
+    vec3 Normal = normalize(NormalMatrix * VecNormal.xyz);
     vec3 tang = normalize(NormalMatrix * vec3(VertexTangent));
 
     // Calculate and normalize the binormal vector
@@ -64,7 +84,7 @@ void main()
     // Construct the matrix for transformation to tangent space
     mat3 toObjectLocal = mat3(tang.x, binormal.x, Normal.x, tang.y, binormal.y, Normal.y, tang.z, binormal.z, Normal.z );
 
-    vec3 pos = vec3( ModelViewMatrix * vec4(VertexPosition,1.0) );
+    vec3 pos = vec3( ModelViewMatrix * VecPos );
 
     // Calculate light directions in tangent space for each light
     for (int i = 0; i < 3; i++) {
@@ -81,7 +101,7 @@ void main()
     ViewDir = toObjectLocal * normalize(-pos);
 
     TexCoord = VertexTexCoord;
-    gl_Position = MVP * vec4(VertexPosition, 1.0);
+    gl_Position = MVP * VecPos;
 }
 
 // ------------------ NOTE ---------------

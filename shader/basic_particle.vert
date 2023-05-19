@@ -4,24 +4,35 @@
 // In/Outs
 //
 
-layout (location = 0) in vec3 VertexInitVelocity; 
-layout (location = 1) in float VertexBirthTime;
+layout (location = 0) in vec3 VertexPosition;
+layout (location = 1) in vec3 VertexVelocity;
+layout (location = 2) in float VertexAge;
 
-out float Transparency;
+out vec3 Position;
+out vec3 Velocity;
+out float Age;
+
 out vec2 TexCoord;
+out float Transparency;
 
 //
 //Uniforms
 //
 
+uniform int Pass;
+
 uniform float Time;
-uniform vec3 Gravity = vec3(0.0, -0.05, 0.0);
+uniform float DeltaTime;
+uniform vec3 Acceleration; //Gravity Direc
 uniform float ParticleLifetime;
-uniform float ParticleSize = 1.0;
-uniform vec3 EmitterPos;
+uniform vec3 EmitterPosition = vec3(0.0);
+uniform mat3 EmitterBasis;
+uniform float ParticleSize = 0.5;
 
 uniform mat4 MV;
 uniform mat4 Projection;
+
+uniform sampler1D RandomTex;
 
 //
 //Consts
@@ -40,7 +51,16 @@ const vec2 texCoords[] = vec2[](vec2(0.0, 0.0),
 								vec2(0.0, 0.0),
 								vec2(1.0, 1.0),
 								vec2(0.0, 1.0));
-							  
+							 
+const float PI = 3.14159265359;
+
+//
+//Functions
+//
+
+vec3 RandomInitialVelocty();
+void update();
+void render();
 
 //
 //Main
@@ -48,19 +68,38 @@ const vec2 texCoords[] = vec2[](vec2(0.0, 0.0),
 
 void main()
 {
-	vec3 CameraPos;
-	float t = Time - VertexBirthTime;
-	if ( t >= 0 && t < ParticleLifetime) {
-		vec3 pos = EmitterPos + VertexInitVelocity * t + Gravity * t * t;
-		
-		CameraPos = (MV * vec4(pos, 1.0)).xyz + (offsets[gl_VertexID] * ParticleSize);
-		Transparency = mix(1, 0, t / ParticleLifetime);
+	if (Pass == 1) update();
+	else render();
+}
+
+vec3 RandomInitialVelocty() {
+	float theta = mix(0, PI/8, texelFetch(RandomTex, 3 * gl_VertexID, 0).r);
+	float phi = mix(0, 2 * PI, texelFetch(RandomTex, 3 * gl_VertexID + 1, 0).r);
+	float velocity = mix(1.25, 1.5, texelFetch(RandomTex, 3 * gl_VertexID + 2, 0).r);
+	vec3 v = vec3(sin(theta) * cos(phi), cos(theta), sin(theta) * sin(phi));
+	return normalize(EmitterBasis * v) * velocity;
+}
+
+void update() {
+	if (VertexAge < 0 || VertexAge > ParticleLifetime) {
+		Position  = EmitterPosition;
+		Velocity = RandomInitialVelocty();
+		if (VertexAge < 0) Age = VertexAge + DeltaTime;
+		else Age = (VertexAge - ParticleLifetime) + DeltaTime;
 	} else {
-		//Dead particle 
-		Transparency = 0;
-		CameraPos = vec3(0.0, 0.0, 0.0);
+		Position = VertexPosition + VertexVelocity * DeltaTime;
+		Velocity = VertexVelocity + Acceleration * DeltaTime;
+		Age = VertexAge + DeltaTime;
 	}
-	
+}
+
+void render() {
+	Transparency = 0;
+	vec3 posCam = vec3(0);
+	if (VertexAge >= 0.0) {
+		posCam = (MV*vec4(VertexPosition,1)).xyz + offsets[gl_VertexID] * ParticleSize;
+		Transparency = clamp(1.0 - VertexAge / ParticleLifetime, 0.0, 1.0);
+	}
 	TexCoord = texCoords[gl_VertexID];
-	gl_Position = Projection * vec4(CameraPos, 1.0);
+	gl_Position = Projection * vec4(posCam, 1.0);
 }

@@ -20,7 +20,7 @@ using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : plane(60.0f, 60.0f, 1, 1), skybox(350.0f), particleLifetime(5.5f), nParticles(500), emitterPos(0, 0, 0), emitterDir(-1, 0, 0)
+SceneBasic_Uniform::SceneBasic_Uniform() : plane(60.0f, 60.0f, 1, 1), skybox(350.0f), particleLifetime(5.5f), nParticles(8000), emitterPos(0, 0, 0), emitterDir(-1, 0, 0)
 {
     //Load meshes
     Planet1Mesh = ObjMesh::loadWithAdjacency("media/Meshes/Planet.obj", true, true);
@@ -125,6 +125,8 @@ void SceneBasic_Uniform::initScene()
 
     ParticleTex =
 		Texture::loadTexture("media/VFX/bluewater.png");
+    RandomTex =
+        ParticleUtils::createRandomTex1D(nParticles * 3);
 
     GLuint SkyboxTex = Texture::loadHdrCubeMap("media/Skybox/space");
 }
@@ -144,65 +146,82 @@ void SceneBasic_Uniform::setupCamera()
 
 void SceneBasic_Uniform::setupParticles()
 {
-    glGenBuffers(1, &initVel);
-	glGenBuffers(1, &startTime);
+    //setp position, velocity, age buffers
+    glGenBuffers(2, posBuf);
+	glGenBuffers(2, velBuf);
+	glGenBuffers(2, ageBuf);
+    
     
     //allocate space for buffers
-	int size = nParticles * sizeof(float);
-	glBindBuffer(GL_ARRAY_BUFFER, initVel);
-	glBufferData(GL_ARRAY_BUFFER, size * 3, NULL, GL_STATIC_DRAW);
-	glBindBuffer(GL_ARRAY_BUFFER, startTime);
-	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STATIC_DRAW);
-
-    //fill the first velocity buffer withr andom velocities
-    glm::mat3 emitterBasis = ParticleUtils::makeArbitraryBasis(emitterDir);
-	vec3 v(0.0f);
-	float velocity, theta, phi;
-	std::vector<GLfloat> data(nParticles * 3);
-    for (uint32_t i = 0; i < nParticles; i++) {
-		theta = glm::mix(0.0f, glm::pi<float>() / 20.0f, randFloat());
-		phi = glm::mix(0.0f, glm::two_pi<float>(), randFloat());
-
-		v.x = sinf(theta) * cosf(phi);
-		v.y = cosf(theta);
-		v.z = sinf(theta) * sinf(phi);
-        
-		velocity = glm::mix(1.25f, 1.5f, randFloat());
-		v = glm::normalize(emitterBasis * v) * velocity;
-        
-		data[3 * i] = v.x;
-		data[3 * i + 1] = v.y;
-		data[3 * i + 2] = v.z;
-    }
+	int size = nParticles * 3 * sizeof(float);
+	glBindBuffer(GL_ARRAY_BUFFER, posBuf[0]);
+	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, posBuf[1]);
+	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, velBuf[0]);
+	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, velBuf[1]);
+	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, ageBuf[0]);
+	glBufferData(GL_ARRAY_BUFFER, nParticles * sizeof(float), NULL, GL_DYNAMIC_COPY);
+	glBindBuffer(GL_ARRAY_BUFFER, ageBuf[1]);
+	glBufferData(GL_ARRAY_BUFFER, nParticles * sizeof(float), NULL, GL_DYNAMIC_COPY);
     
-	glBindBuffer(GL_ARRAY_BUFFER, initVel);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, size * 3, data.data());
-
-	//fill the start time buffer
+	//fill age buffer
+	std::vector<GLfloat> tempData(nParticles);
 	float rate = particleLifetime / nParticles;
-	for (uint32_t i = 0; i < nParticles; i++) {
-		data[i] = rate * i;
-	}
+	for (int i = 0; i < nParticles; i++) tempData[i] = rate * (i - nParticles);
     
-	glBindBuffer(GL_ARRAY_BUFFER, startTime);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, nParticles * sizeof(float), data.data());
-    
+	glBindBuffer(GL_ARRAY_BUFFER, ageBuf[0]);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, nParticles * sizeof(float), tempData.data());
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
     
-	glGenVertexArrays(1, &particles);
-	glBindVertexArray(particles);
-	glBindBuffer(GL_ARRAY_BUFFER, initVel);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	//create and set VAO for each set of buffers
+	glGenVertexArrays(2, particleArray);
+    
+	glBindVertexArray(particleArray[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, posBuf[0]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
     
-	glBindBuffer(GL_ARRAY_BUFFER, startTime);
-	glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 0, NULL);
+	glBindBuffer(GL_ARRAY_BUFFER, velBuf[0]);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
     
-	glVertexAttribDivisor(0, 1);
-	glVertexAttribDivisor(1, 1);
+	glBindBuffer(GL_ARRAY_BUFFER, ageBuf[0]);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
+    
+	glBindVertexArray(particleArray[1]);
+	glBindBuffer(GL_ARRAY_BUFFER, posBuf[1]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, velBuf[1]);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(1);
+    
+	glBindBuffer(GL_ARRAY_BUFFER, ageBuf[1]);
+	glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0);
+    
+	//create transform feedback objects
+	glGenTransformFeedbacks(2, feedback);
+    
+	//set up transform feedback objects
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[0]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, posBuf[0]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, velBuf[0]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, ageBuf[0]);
+    
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[1]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, posBuf[1]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, velBuf[1]);
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, ageBuf[1]);
+    
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
 }
 
 //SetupFBO: Setup the FBO for HDR rendering. It will create/bind the FBO, create a depth buffer and a HDR buffer.
@@ -288,9 +307,14 @@ void SceneBasic_Uniform::compile()
         Alphaprog.compileShader("shader/basic_alpha.vert");
         Alphaprog.compileShader("shader/basic_alpha.frag");
         Alphaprog.link();
+        
 		ParticleProg.compileShader("shader/basic_particle.vert");
 		ParticleProg.compileShader("shader/basic_particle.frag");
+		GLuint progHandle = ParticleProg.getHandle();
+		const char* outputNames[] = { "Position", "Velocity", "Age" };
+		glTransformFeedbackVaryings(progHandle, 3, outputNames, GL_SEPARATE_ATTRIBS);
 		ParticleProg.link();
+        
         Skyboxprog.compileShader("shader/skybox.vert");
         Skyboxprog.compileShader("shader/skybox.frag");
         Skyboxprog.link();
@@ -393,7 +417,7 @@ void SceneBasic_Uniform::Pass1()
     setMatrices();
     MoonMesh->render();
 
-    //Use the same mesh&&textures for moon
+    //Use the same mesh&&textures for meteor
 	model = mat4(1.0f);
 	model = glm::rotate(model, glm::radians(meteorAngle), vec3(0.0f, 1.0f, 0.0f));
 	model = glm::translate(model, vec3(meteorDistance, 0.0f, 0.0f));
@@ -451,18 +475,47 @@ void SceneBasic_Uniform::Pass4()
 
 void SceneBasic_Uniform::Pass5()
 {
-    glDepthMask(GL_FALSE);
     
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     setTextures(ParticleTex, ParticleTex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_1D, RandomTex);
     
 	model = mat4(1.0f);
     setParticleMatrices();
     
-	glBindVertexArray(particles);
+	//First pass - render particles to buffer
+    
+    ParticleProg.setUniform("Pass", 1);
+    
+    glEnable(GL_RASTERIZER_DISCARD);
+	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[drawBuf]);
+	glBeginTransformFeedback(GL_POINTS);
+    
+	glBindVertexArray(particleArray[1 - drawBuf]);
+	glVertexAttribDivisor(0, 0);
+	glVertexAttribDivisor(1, 0);
+	glVertexAttribDivisor(2, 0);
+	glDrawArrays(GL_POINTS, 0, nParticles);
+	glBindVertexArray(0);
+    
+	glEndTransformFeedback();
+	glDisable(GL_RASTERIZER_DISCARD);
+
+    //Second pass - render from buffer to screen
+    
+    glDepthMask(GL_FALSE);
+    ParticleProg.setUniform("Pass", 2);
+
+	glBindVertexArray(particleArray[drawBuf]);
+	glVertexAttribDivisor(0, 1);
+	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
 	glBindVertexArray(0);
+
+	drawBuf = 1 - drawBuf;
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
@@ -521,9 +574,17 @@ void SceneBasic_Uniform::setMatrices()
 void SceneBasic_Uniform::setParticleMatrices()
 {
     glm::mat4 mv = view * model;
+    ParticleProg.setUniform("RandomTex", 1);
+    ParticleProg.setUniform("ParticleTex", 0);
 	ParticleProg.setUniform("Time", elapsedTime);
+    ParticleProg.setUniform("DeltaTime", deltaTime);
+    ParticleProg.setUniform("Acceleration", vec3(0.0f, -0.5f, 0.0f));
 	ParticleProg.setUniform("ParticleLifetime", particleLifetime);
-	ParticleProg.setUniform("EmitterPos", emitterPos);
+	ParticleProg.setUniform("EmitterPosition", emitterPos);
+	ParticleProg.setUniform("EmitterBasis", ParticleUtils::makeArbitraryBasis(emitterDir));
+	ParticleProg.setUniform("ParticleSize", 0.5f);
+    
+    
 	ParticleProg.setUniform("MV", mv);
 	ParticleProg.setUniform("Projection", projection);
 }

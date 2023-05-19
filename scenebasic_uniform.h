@@ -82,8 +82,11 @@ private:
     
     // Meteor Particles
     Random rand;
-    GLuint initVel, startTime, particles, nParticles;
-    float particleLifetime;
+	GLuint posBuf[2], velBuf[2], ageBuf[2]; //Buffers
+	GLuint particleArray[2]; //VAOs
+	GLuint feedback[2]; //Transform Feedbacks
+	GLuint drawBuf = 1; //Toggle between buffers
+    float particleLifetime, nParticles;
         
     // Textures
     GLuint Planet1BCTex, Planet1NMTex,
@@ -92,7 +95,7 @@ private:
         PlaneTex, PlaneAlpha,
         CrystalBCTex, CrystalNMTex,
         SkyboxTex,
-        ParticleTex;
+        ParticleTex, RandomTex;
 
     // Skybox object
     SkyBox skybox;

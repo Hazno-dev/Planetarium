@@ -1,4 +1,12 @@
 ﻿  scenebasic_uniform.cpp
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(589,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(590,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(129,53): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(156,11): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(166,43): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(168,43): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(171,32): warning C4244: 'argument': conversion from 'float' to 'const unsigned __int64', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(176,49): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(500,29): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(515,44): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(650,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(651,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   Project_Template.vcxproj -> C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\x64\Debug\Project_Template.exe

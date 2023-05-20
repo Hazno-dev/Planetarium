@@ -51,7 +51,7 @@ private:
     glm::vec3 Planet1Location;
     glm::vec3 Planet2Location;
     glm::vec3 moonLocation;
-	glm::vec3 meteorLocation;
+	glm::vec3 meteorLocation, meteorPreviousLocation;
     glm::vec4 Light1Pos;
     glm::vec4 Light2Pos;
     glm::vec4 Light3Pos;
@@ -64,7 +64,7 @@ private:
     float Planet2RotationSpeed = 10.f;
     float moonRotationSpeed = 25.0f;
     float crystalLevSpeed = 2.0f;
-    float meteorRotationSpeed = 20.f;
+    float meteorRotationSpeed = 15.f;
 
     // Distances and amplitudes
     float Planet1Distance = 12.0f;
@@ -80,13 +80,21 @@ private:
 	float meteorAngle;
     float crystalOffset;
     
-    // Meteor Particles
+    // Meteor Fire Particles
     Random rand;
 	GLuint posBuf[2], velBuf[2], ageBuf[2]; //Buffers
 	GLuint particleArray[2]; //VAOs
 	GLuint feedback[2]; //Transform Feedbacks
 	GLuint drawBuf = 1; //Toggle between buffers
     float particleLifetime, nParticles;
+    
+    // Meteor Smoke Particles
+    GLuint SposBuf[2], SvelBuf[2], SageBuf[2]; //Buffers
+    GLuint SparticleArray[2]; //VAOs
+    GLuint Sfeedback[2]; //Transform Feedbacks
+    GLuint SdrawBuf = 1; //Toggle between buffers
+    float SparticleLifetime, SnParticles;
+
         
     // Textures
     GLuint Planet1BCTex, Planet1NMTex,
@@ -95,7 +103,7 @@ private:
         PlaneTex, PlaneAlpha,
         CrystalBCTex, CrystalNMTex,
         SkyboxTex,
-        ParticleTex, RandomTex;
+        FParticleTex, SParticleTex, RandomTex;
 
     // Skybox object
     SkyBox skybox;
@@ -105,7 +113,9 @@ private:
 
     // Private function declarations
     void setMatrices();
-    void setParticleMatrices();
+	void setParticleMatrices();
+    void setSmokeParticleMatrices();
+	void setFireParticleMatrices();
     void setAlphaMatrices();
     void setSkyboxMatrices();
     void setHDRMatrices();

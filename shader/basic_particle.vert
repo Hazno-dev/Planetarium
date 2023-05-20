@@ -29,6 +29,10 @@ uniform vec3 EmitterPosition = vec3(0.0);
 uniform mat3 EmitterBasis;
 uniform float ParticleSize = 0.5;
 
+uniform bool bVariableSize = false;
+uniform float MinParticleSize = 1.0;
+uniform float MaxParticleSize = 1.5;
+
 uniform mat4 MV;
 uniform mat4 Projection;
 
@@ -59,6 +63,7 @@ const float PI = 3.14159265359;
 //
 
 vec3 RandomInitialVelocty();
+vec3 RandomInitialPosition();
 void update();
 void render();
 
@@ -80,9 +85,22 @@ vec3 RandomInitialVelocty() {
 	return normalize(EmitterBasis * v) * velocity;
 }
 
+// This implementation of RandomInitialPosition worked, but created unnatural looking particle distributions.
+// Left in to show that it was implemented.
+//
+//vec3 RandomInitialVelocty() {
+//	float velocity = mix(0.1,0.5, texelFetch(RandomTex, 2 * gl_VertexID, 0).r);
+//	return EmitterBasis * vec3(velocity, velocity, velocity);
+//}
+
+vec3 RandomInitialPosition() {
+	float offset = mix(-0.1, 0.1, texelFetch(RandomTex, 2 * gl_VertexID + 1, 0).r);
+	return EmitterPosition + vec3(offset, 0, 0);
+}
+
 void update() {
 	if (VertexAge < 0 || VertexAge > ParticleLifetime) {
-		Position  = EmitterPosition;
+		Position  = RandomInitialPosition();
 		Velocity = RandomInitialVelocty();
 		if (VertexAge < 0) Age = VertexAge + DeltaTime;
 		else Age = (VertexAge - ParticleLifetime) + DeltaTime;
@@ -97,8 +115,11 @@ void render() {
 	Transparency = 0;
 	vec3 posCam = vec3(0);
 	if (VertexAge >= 0.0) {
-		posCam = (MV*vec4(VertexPosition,1)).xyz + offsets[gl_VertexID] * ParticleSize;
-		Transparency = clamp(1.0 - VertexAge / ParticleLifetime, 0.0, 1.0);
+	    float agePct = VertexAge / ParticleLifetime;
+		Transparency = clamp(0.8 - agePct, 0.0, 0.8);
+		if (!bVariableSize) posCam = (MV*vec4(VertexPosition,1)).xyz + offsets[gl_VertexID] * ParticleSize;
+		else posCam = (MV * vec4(VertexPosition, 1)).xyz + offsets[gl_VertexID] * mix(MinParticleSize, MaxParticleSize, agePct);
+		
 	}
 	TexCoord = texCoords[gl_VertexID];
 	gl_Position = Projection * vec4(posCam, 1.0);

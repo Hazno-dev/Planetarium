@@ -20,7 +20,8 @@ using glm::vec4;
 using glm::mat3;
 using glm::mat4;
 
-SceneBasic_Uniform::SceneBasic_Uniform() : plane(60.0f, 60.0f, 1, 1), skybox(350.0f), particleLifetime(5.5f), nParticles(8000), emitterPos(0, 0, 0), emitterDir(-1, 0, 0)
+SceneBasic_Uniform::SceneBasic_Uniform() : plane(60.0f, 60.0f, 1, 1), skybox(350.0f), particleLifetime(1.0f), nParticles(300), emitterPos(0, 0, 0), emitterDir(0, 0, -1),
+    SparticleLifetime(2.5f), SnParticles(300)
 {
     //Load meshes
     Planet1Mesh = ObjMesh::loadWithAdjacency("media/Meshes/Planet.obj", true, true);
@@ -99,6 +100,7 @@ void SceneBasic_Uniform::initScene()
     prog.setUniform("EdgeWidth", 0.005f);
     prog.setUniform("PctExtend", 0.20f);
 
+
     //Load Textures
     CrystalBCTex =
         Texture::loadTexture("media/CrystalTextures/CrystalBase_initialShadingGroup_BaseColor.1001.png");
@@ -121,10 +123,12 @@ void SceneBasic_Uniform::initScene()
         Texture::loadTexture("media/MoonTextures/MoonLow_1001_Normal.png");
 
     PlaneTex =
-        Texture::loadTexture("media/PlaneTextures/PlaneTex.png");
+        Texture::loadTexture("media/PlaneTextures/PlaneTex2.png");
 
-    ParticleTex =
-		Texture::loadTexture("media/VFX/bluewater.png");
+    FParticleTex =
+		Texture::loadTexture("media/VFX/fire.png");
+    SParticleTex =
+		Texture::loadTexture("media/VFX/smoke.png");
     RandomTex =
         ParticleUtils::createRandomTex1D(nParticles * 3);
 
@@ -146,6 +150,8 @@ void SceneBasic_Uniform::setupCamera()
 
 void SceneBasic_Uniform::setupParticles()
 {
+    //FIRE PARTICLES
+    // 
     //setp position, velocity, age buffers
     glGenBuffers(2, posBuf);
 	glGenBuffers(2, velBuf);
@@ -222,6 +228,85 @@ void SceneBasic_Uniform::setupParticles()
 	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, ageBuf[1]);
     
 	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+
+    //SMOKE PARTICLES
+    //
+    //setp position, velocity, age buffers
+    glGenBuffers(2, SposBuf);
+    glGenBuffers(2, SvelBuf);
+    glGenBuffers(2, SageBuf);
+
+
+    //allocate space for buffers
+    int Ssize = SnParticles * 3 * sizeof(float);
+    glBindBuffer(GL_ARRAY_BUFFER, SposBuf[0]);
+    glBufferData(GL_ARRAY_BUFFER, Ssize, NULL, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, SposBuf[1]);
+    glBufferData(GL_ARRAY_BUFFER, Ssize, NULL, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, SvelBuf[0]);
+    glBufferData(GL_ARRAY_BUFFER, Ssize, NULL, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, SvelBuf[1]);
+    glBufferData(GL_ARRAY_BUFFER, Ssize, NULL, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, SageBuf[0]);
+    glBufferData(GL_ARRAY_BUFFER, SnParticles * sizeof(float), NULL, GL_DYNAMIC_COPY);
+    glBindBuffer(GL_ARRAY_BUFFER, SageBuf[1]);
+    glBufferData(GL_ARRAY_BUFFER, SnParticles * sizeof(float), NULL, GL_DYNAMIC_COPY);
+
+    //fill age buffer
+    std::vector<GLfloat> StempData(SnParticles);
+    float Srate = SparticleLifetime / SnParticles;
+    for (int i = 0; i < SnParticles; i++) StempData[i] = Srate * (i - SnParticles);
+
+    glBindBuffer(GL_ARRAY_BUFFER, SageBuf[0]);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, SnParticles * sizeof(float), StempData.data());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //create and set VAO for each set of buffers
+    glGenVertexArrays(2, SparticleArray);
+
+    glBindVertexArray(SparticleArray[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, SposBuf[0]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, SvelBuf[0]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, SageBuf[0]);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(SparticleArray[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, SposBuf[1]);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, SvelBuf[1]);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, SageBuf[1]);
+    glVertexAttribPointer(2, 1, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
+    //create transform feedback objects
+    glGenTransformFeedbacks(2, Sfeedback);
+
+    //set up transform feedback objects
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, Sfeedback[0]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, SposBuf[0]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, SvelBuf[0]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, SageBuf[0]);
+
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, Sfeedback[1]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, SposBuf[1]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 1, SvelBuf[1]);
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 2, SageBuf[1]);
+
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
 }
 
 //SetupFBO: Setup the FBO for HDR rendering. It will create/bind the FBO, create a depth buffer and a HDR buffer.
@@ -347,6 +432,8 @@ void SceneBasic_Uniform::update( float t )
 	meteorAngle = t * meteorRotationSpeed;
     crystalOffset = sin(t * crystalLevSpeed) * crystalLevAmplitude;
 
+
+	
 }
 
 // render: Renders the scene by setting up framebuffers, clearing buffers, enabling depth testing, and running multiple shader passes.
@@ -373,13 +460,13 @@ void SceneBasic_Uniform::render()
 
     //Particle pass - BasicParticle.Vert/Frag
     ParticleProg.use();
-    Pass5();
+    Pass4();
 
 
     //HDR shader pass - BasicHDR.Vert/Frag
     HDRprog.use();
     computeLogAveLuminance();
-    Pass4();
+    Pass5();
 }
 
 // Pass1: Sets the material properties, textures, and transformations for each mesh in the scene and renders them using the basic shader program.
@@ -418,10 +505,12 @@ void SceneBasic_Uniform::Pass1()
     MoonMesh->render();
 
     //Use the same mesh&&textures for meteor
+	if (meteorLocation != meteorPreviousLocation) meteorPreviousLocation = meteorLocation;
 	model = mat4(1.0f);
 	model = glm::rotate(model, glm::radians(meteorAngle), vec3(0.0f, 1.0f, 0.0f));
 	model = glm::translate(model, vec3(meteorDistance, 0.0f, 0.0f));
     model = glm::scale(model, vec3(0.6f, 0.6f, 0.6f));
+	meteorLocation = vec3(model[3]);
 	setMatrices();
 	MoonMesh->render();
 
@@ -454,8 +543,8 @@ void SceneBasic_Uniform::Pass3()
     skybox.render();
 }
 
-// Pass4: Reverts to the default framebuffer and renders the HDR quad using the HDR shader program.
-void SceneBasic_Uniform::Pass4()
+// Pass5: Reverts to the default framebuffer and renders the HDR quad using the HDR shader program.
+void SceneBasic_Uniform::Pass5()
 {
     // Revert to default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -473,49 +562,99 @@ void SceneBasic_Uniform::Pass4()
     glBindVertexArray(0);
 }
 
-void SceneBasic_Uniform::Pass5()
+void SceneBasic_Uniform::Pass4()
 {
     
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    setTextures(ParticleTex, ParticleTex);
+    
+    // First Render
+    // SMOKE Particles
+    
+    
+    setTextures(SParticleTex, SParticleTex);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_1D, RandomTex);
-    
-	model = mat4(1.0f);
+
+    model = mat4(1.0f);
     setParticleMatrices();
-    
-	//First pass - render particles to buffer
-    
+    setSmokeParticleMatrices();
+
+    //First pass - render particles to buffer
+
     ParticleProg.setUniform("Pass", 1);
-    
+
     glEnable(GL_RASTERIZER_DISCARD);
-	glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[drawBuf]);
-	glBeginTransformFeedback(GL_POINTS);
-    
-	glBindVertexArray(particleArray[1 - drawBuf]);
-	glVertexAttribDivisor(0, 0);
-	glVertexAttribDivisor(1, 0);
-	glVertexAttribDivisor(2, 0);
-	glDrawArrays(GL_POINTS, 0, nParticles);
-	glBindVertexArray(0);
-    
-	glEndTransformFeedback();
-	glDisable(GL_RASTERIZER_DISCARD);
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, Sfeedback[SdrawBuf]);
+    glBeginTransformFeedback(GL_POINTS);
+
+    glBindVertexArray(SparticleArray[1 - SdrawBuf]);
+    glVertexAttribDivisor(0, 0);
+    glVertexAttribDivisor(1, 0);
+    glVertexAttribDivisor(2, 0);
+    glDrawArrays(GL_POINTS, 0, SnParticles);
+    glBindVertexArray(0);
+
+    glEndTransformFeedback();
+    glDisable(GL_RASTERIZER_DISCARD);
 
     //Second pass - render from buffer to screen
-    
+
     glDepthMask(GL_FALSE);
     ParticleProg.setUniform("Pass", 2);
 
-	glBindVertexArray(particleArray[drawBuf]);
-	glVertexAttribDivisor(0, 1);
-	glVertexAttribDivisor(1, 1);
-	glVertexAttribDivisor(2, 1);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
-	glBindVertexArray(0);
+    glBindVertexArray(SparticleArray[SdrawBuf]);
+    glVertexAttribDivisor(0, 1);
+    glVertexAttribDivisor(1, 1);
+    glVertexAttribDivisor(2, 1);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, SnParticles);
+    glBindVertexArray(0);
 
-	drawBuf = 1 - drawBuf;
+    SdrawBuf = 1 - SdrawBuf;
+    glDepthMask(GL_TRUE);
+    
+	//Second Render - Rendered after to avoid depth issues
+    //FIRE Particles!!
+
+    setTextures(FParticleTex, FParticleTex);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_1D, RandomTex);
+
+    model = mat4(1.0f);
+    setParticleMatrices();
+	setFireParticleMatrices();
+
+    //First pass - render particles to buffer
+
+    ParticleProg.setUniform("Pass", 1);
+
+    glEnable(GL_RASTERIZER_DISCARD);
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, feedback[drawBuf]);
+    glBeginTransformFeedback(GL_POINTS);
+
+    glBindVertexArray(particleArray[1 - drawBuf]);
+    glVertexAttribDivisor(0, 0);
+    glVertexAttribDivisor(1, 0);
+    glVertexAttribDivisor(2, 0);
+    glDrawArrays(GL_POINTS, 0, nParticles);
+    glBindVertexArray(0);
+
+    glEndTransformFeedback();
+    glDisable(GL_RASTERIZER_DISCARD);
+
+    //Second pass - render from buffer to screen
+
+    glDepthMask(GL_FALSE);
+    ParticleProg.setUniform("Pass", 2);
+
+    glBindVertexArray(particleArray[drawBuf]);
+    glVertexAttribDivisor(0, 1);
+    glVertexAttribDivisor(1, 1);
+    glVertexAttribDivisor(2, 1);
+    glDrawArraysInstanced(GL_TRIANGLES, 0, 6, nParticles);
+    glBindVertexArray(0);
+
+    drawBuf = 1 - drawBuf;
 
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
@@ -571,19 +710,38 @@ void SceneBasic_Uniform::setMatrices()
 
 }
 
+void SceneBasic_Uniform::setSmokeParticleMatrices()
+{
+    ParticleProg.setUniform("ParticleLifetime", SparticleLifetime);
+    ParticleProg.setUniform("ParticleSize", 0.4f);
+    ParticleProg.setUniform("bVariableSize", true);
+    ParticleProg.setUniform("MinParticleSize", 1.3f);
+    ParticleProg.setUniform("MaxParticleSize", 2.3f);
+}
+
+void SceneBasic_Uniform::setFireParticleMatrices()
+{
+    ParticleProg.setUniform("ParticleLifetime", particleLifetime);
+    ParticleProg.setUniform("ParticleSize", 0.4f);
+    ParticleProg.setUniform("bVariableSize", true);
+	ParticleProg.setUniform("MinParticleSize", 1.0f);
+    ParticleProg.setUniform("MaxParticleSize", 1.4f);
+}
+
 void SceneBasic_Uniform::setParticleMatrices()
 {
     glm::mat4 mv = view * model;
+    
+    emitterPos = meteorLocation;
+    emitterDir = -glm::normalize(meteorLocation - meteorPreviousLocation);
+    
     ParticleProg.setUniform("RandomTex", 1);
     ParticleProg.setUniform("ParticleTex", 0);
 	ParticleProg.setUniform("Time", elapsedTime);
     ParticleProg.setUniform("DeltaTime", deltaTime);
-    ParticleProg.setUniform("Acceleration", vec3(0.0f, -0.5f, 0.0f));
-	ParticleProg.setUniform("ParticleLifetime", particleLifetime);
-	ParticleProg.setUniform("EmitterPosition", emitterPos);
-	ParticleProg.setUniform("EmitterBasis", ParticleUtils::makeArbitraryBasis(emitterDir));
-	ParticleProg.setUniform("ParticleSize", 0.5f);
-    
+    ParticleProg.setUniform("Acceleration", vec3(0.0f, 0.1f, 0.0f));
+    ParticleProg.setUniform("EmitterPosition", emitterPos);
+    ParticleProg.setUniform("EmitterBasis", ParticleUtils::makeArbitraryBasis(emitterDir));
     
 	ParticleProg.setUniform("MV", mv);
 	ParticleProg.setUniform("Projection", projection);

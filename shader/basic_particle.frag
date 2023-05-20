@@ -17,6 +17,7 @@ layout (location = 0) out vec4 FragColor;
 void main() {
 	vec4 texColor = texture(ParticleTex, TexCoord);
 	
-	FragColor = texColor;
+	//Black mixture as the particle gets old
+	FragColor = vec4(mix(vec3(0,0,0), texColor.rgb, Transparency), texColor.a);
 	FragColor.a *= Transparency;
 }

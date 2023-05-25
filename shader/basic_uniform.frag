@@ -55,6 +55,12 @@ uniform struct MaterialInfo{
 uniform vec3 LineColour;
 flat in int GIsEdge;
 
+uniform bool bDisintegrationOn = false;
+uniform sampler2D NoiseTex;
+uniform vec3 PaintColour = vec3(0.3, 0.3, 0.3);
+uniform float LowThreshold = 0.45f;
+uniform float HighThreshold = 0.65f;
+
 //
 //Consts
 //
@@ -72,6 +78,7 @@ const float scaleFactor = 1.0/level;
 //Functions
 //
 
+bool Disintegration();
 vec3 Phong(int light, vec3 NormalCam);
 vec3 BlinnPhong(int light, vec3 norm, vec3 texColour);
 vec3 SpotBlinnPhong(vec3 norm, vec3 texColour);
@@ -82,6 +89,9 @@ float CalcFogFactor(vec4 PositionCam);
 //
 
 void main() {
+
+    //Disintegration if enabled
+    if (Disintegration()) return;
 
     if (GIsEdge == 1){
         HdrColor = LineColour;
@@ -216,6 +226,19 @@ float CalcFogFactor(vec4 PositionCam){
     return clamp(fogFactor, 0.0, 1.0);
 }
 
+// Disintegration - Disintegrate the object based on noise texture
+//
+bool Disintegration() {
+    if (!bDisintegrationOn) return false;
+
+    vec4 noise = texture(NoiseTex, GTexCoord);
+    if (noise.a < LowThreshold || noise.a > HighThreshold){
+        HdrColor = PaintColour;
+        return true;
+    }
+    
+    return false;
+}
 
 // ---------- DEPRECATED -------------
 

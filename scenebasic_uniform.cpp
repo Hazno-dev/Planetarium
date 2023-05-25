@@ -14,6 +14,7 @@ using std::endl;
 #include "helper/glutils.h"
 #include "helper/texture.h"
 #include "helper/particleutils.h"
+#include "helper/noisetex.h"
 
 using glm::vec3;
 using glm::vec4;
@@ -100,6 +101,9 @@ void SceneBasic_Uniform::initScene()
     prog.setUniform("EdgeWidth", 0.005f);
     prog.setUniform("PctExtend", 0.20f);
 
+    // Noise
+    prog.setUniform("NoiseTex", 2);
+
 
     //Load Textures
     CrystalBCTex =
@@ -131,6 +135,9 @@ void SceneBasic_Uniform::initScene()
 		Texture::loadTexture("media/VFX/smoke.png");
     RandomTex =
         ParticleUtils::createRandomTex1D(nParticles * 3);
+
+    noiseTex =
+        NoiseTex::generate2DTex(16.0f);
 
     GLuint SkyboxTex = Texture::loadHdrCubeMap("media/Skybox/space");
 }
@@ -479,6 +486,7 @@ void SceneBasic_Uniform::Pass1()
     prog.setUniform("Material.Ka", 0.5f, 0.5f, 0.5f);
     prog.setUniform("Material.Shininess", 180.0f);
 
+	//Planet1 Render
     setTextures(Planet1BCTex, Planet1NMTex);
     model = mat4(1.0f);
     model = glm::rotate(model, glm::radians(Planet1Angle), vec3(0.0f, 1.0f, 0.0f));
@@ -488,6 +496,7 @@ void SceneBasic_Uniform::Pass1()
     setLightUniforms();
     Planet1Mesh->render();
 
+    //Planet2 Render
     prog.setUniform("Material.Ks", 0.9f, 0.9f, 0.9f);
 
     setTextures(Planet2BCTex, Planet2NMTex);
@@ -497,6 +506,7 @@ void SceneBasic_Uniform::Pass1()
     setMatrices();
     Planet1Mesh->render();
 
+    //Moon Render
     setTextures(MoonBCTex, MoonNMTex);
     model = glm::rotate(model, glm::radians(moonAngle), vec3(0.0f, 1.0f, 0.0f));
     model = glm::translate(model, vec3(moonDistance, 0.0f, 0.0f));
@@ -504,7 +514,7 @@ void SceneBasic_Uniform::Pass1()
     setMatrices();
     MoonMesh->render();
 
-    //Use the same mesh&&textures for meteor
+	//Meteor Render - Uses disintegration shader && moon mesh
 	if (meteorLocation != meteorPreviousLocation) meteorPreviousLocation = meteorLocation;
 	model = mat4(1.0f);
 	model = glm::rotate(model, glm::radians(meteorAngle), vec3(0.0f, 1.0f, 0.0f));
@@ -512,8 +522,13 @@ void SceneBasic_Uniform::Pass1()
     model = glm::scale(model, vec3(0.6f, 0.6f, 0.6f));
 	meteorLocation = vec3(model[3]);
 	setMatrices();
+    prog.setUniform("bDisintegrationOn", true);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, noiseTex);
 	MoonMesh->render();
+    prog.setUniform("bDisintegrationOn", false);
 
+    //Crystal Render - Uses Sinwave surface animation 
     prog.setUniform("Material.Ks", 1.0f, 1.0f, 1.0f);
 
     prog.setUniform("bSinWaveAnim", true);

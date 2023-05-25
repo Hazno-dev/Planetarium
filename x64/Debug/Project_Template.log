@@ -1,19 +1,19 @@
 ﻿  scenebasic_uniform.cpp
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(133,53): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(162,11): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(172,43): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(174,43): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(177,32): warning C4244: 'argument': conversion from 'float' to 'const unsigned __int64', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(182,49): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(241,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(251,47): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(253,47): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(256,36): warning C4244: 'argument': conversion from 'float' to 'const unsigned __int64', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(261,53): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(595,32): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(610,47): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(639,32): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(654,47): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(808,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(809,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(137,53): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(169,11): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(179,43): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(181,43): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(184,32): warning C4244: 'argument': conversion from 'float' to 'const unsigned __int64', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(189,49): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(248,15): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(258,47): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(260,47): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(263,36): warning C4244: 'argument': conversion from 'float' to 'const unsigned __int64', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(268,53): warning C4244: 'argument': conversion from 'float' to 'GLsizeiptr', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(610,32): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(625,47): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(654,32): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(669,47): warning C4244: 'argument': conversion from 'float' to 'GLsizei', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(823,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\scenebasic_uniform.cpp(824,19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   Project_Template.vcxproj -> C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\x64\Debug\Project_Template.exe

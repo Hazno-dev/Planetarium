@@ -103,7 +103,8 @@ private:
         PlaneTex, PlaneAlpha,
         CrystalBCTex, CrystalNMTex,
         SkyboxTex,
-        FParticleTex, SParticleTex, RandomTex;
+        FParticleTex, SParticleTex, RandomTex,
+        noiseTex;
 
     // Skybox object
     SkyBox skybox;

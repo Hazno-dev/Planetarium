@@ -110,6 +110,12 @@
     <None Include="shader\basic_particle.vert">
       <Filter>shaders</Filter>
     </None>
+    <None Include="shader\basic_NightVIS.frag">
+      <Filter>shaders</Filter>
+    </None>
+    <None Include="shader\basic_NightVIS.vert">
+      <Filter>shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="helper\scene.h">

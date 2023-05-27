@@ -31,6 +31,7 @@ private:
     GLSLProgram Alphaprog;
     GLSLProgram Skyboxprog;
     GLSLProgram HDRprog;
+    GLSLProgram NightVprog;
 
     // HDR Variables
     GLuint quad;
@@ -104,7 +105,7 @@ private:
         CrystalBCTex, CrystalNMTex,
         SkyboxTex,
         FParticleTex, SParticleTex, RandomTex,
-        noiseTex;
+        noiseTex, FSnoisetex;
 
     // Skybox object
     SkyBox skybox;
@@ -120,6 +121,7 @@ private:
     void setAlphaMatrices();
     void setSkyboxMatrices();
     void setHDRMatrices();
+    void setNightVISMatrices();
     void setLightUniforms();
     void setTextures(GLuint Tex1, GLuint Tex2);
     void compile();
@@ -136,6 +138,7 @@ private:
     void Pass3();
     void Pass4();
     void Pass5();
+    void Pass6();
 
 };
 

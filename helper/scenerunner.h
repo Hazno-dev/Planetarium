@@ -119,6 +119,7 @@ private:
 
     void mainLoop(GLFWwindow * window, Scene & scene) {
         bool spaceKeyPressed = false;
+		bool tKeyPressed = false;
         while( ! glfwWindowShouldClose(window) && !glfwGetKey(window, GLFW_KEY_ESCAPE) ) {
             GLUtils::checkForOpenGLError(__FILE__,__LINE__);
 			
@@ -133,6 +134,12 @@ private:
                 scene.animate(!scene.animating());
                 spaceKeyPressed = true;
             }
+			int tkeystate = glfwGetKey(window, GLFW_KEY_T);
+            if (tkeystate == GLFW_PRESS && !tKeyPressed) {
+				scene.SettKey(!scene.GettKey());
+				tKeyPressed = true;
+            }
+			if (tkeystate == GLFW_RELEASE) tKeyPressed = false;
             if (state == GLFW_RELEASE) spaceKeyPressed = false;
         }
     }

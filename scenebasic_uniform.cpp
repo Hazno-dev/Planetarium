@@ -138,6 +138,8 @@ void SceneBasic_Uniform::initScene()
 
     noiseTex =
         NoiseTex::generate2DTex(16.0f);
+    FSnoisetex =
+        NoiseTex::generatePeriodic2DTex(200.0f, 0.5f, 800, 600);
 
     GLuint SkyboxTex = Texture::loadHdrCubeMap("media/Skybox/space");
 }
@@ -413,6 +415,9 @@ void SceneBasic_Uniform::compile()
         HDRprog.compileShader("shader/basic_HDR.vert");
         HDRprog.compileShader("shader/basic_HDR.frag");
         HDRprog.link();
+		NightVprog.compileShader("shader/basic_NightVIS.vert");
+		NightVprog.compileShader("shader/basic_NightVIS.frag");
+		NightVprog.link();
 		prog.compileShader("shader/basic_uniform.vert");
         prog.compileShader("shader/basic_uniform.gs");
 		prog.compileShader("shader/basic_uniform.frag");
@@ -469,11 +474,14 @@ void SceneBasic_Uniform::render()
     ParticleProg.use();
     Pass4();
 
-
     //HDR shader pass - BasicHDR.Vert/Frag
     HDRprog.use();
     computeLogAveLuminance();
     Pass5();
+
+    //Night vis pass - BasicNightVIS.Vert/Frag
+	NightVprog.use();
+    Pass6();
 }
 
 // Pass1: Sets the material properties, textures, and transformations for each mesh in the scene and renders them using the basic shader program.
@@ -561,6 +569,7 @@ void SceneBasic_Uniform::Pass3()
 // Pass5: Reverts to the default framebuffer and renders the HDR quad using the HDR shader program.
 void SceneBasic_Uniform::Pass5()
 {
+    if (tKey) return;
     // Revert to default framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -577,6 +586,29 @@ void SceneBasic_Uniform::Pass5()
     glBindVertexArray(0);
 }
 
+// Pass6: Night Vision Post Processing if T Key is pressed
+void SceneBasic_Uniform::Pass6()
+{
+	if (!tKey) return;
+
+	// Revert to default framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+
+    view = mat4(1.0);
+    model = mat4(1.0);
+    projection = mat4(1.0);
+    setNightVISMatrices();
+
+    // Render the quad
+    glBindVertexArray(quad);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+}
+
+// Pass4: Particle System Pass - rendered after (almost) everything else
+// Sets the uniforms for the particle system and renders it using the particle shader program.
 void SceneBasic_Uniform::Pass4()
 {
     
@@ -699,6 +731,7 @@ void SceneBasic_Uniform::computeLogAveLuminance()
 
 }
 
+// randFloat: Returns a random float 
 float SceneBasic_Uniform::randFloat()
 {
 	return rand.nextFloat();
@@ -711,6 +744,9 @@ void SceneBasic_Uniform::resize(int w, int h)
     width = w;
     height = h;
     projection = glm::perspective(glm::radians(70.0f), (float)w / h, 0.3f, 500.f);
+    
+    //Fix for full-screen noise texture
+    FSnoisetex =NoiseTex::generatePeriodic2DTex(200.0f, 0.5f, w, h);
 }
 
 // setMatrices: Sets the model-view, normal, and model-view-projection matrices for the basic shader program.
@@ -784,6 +820,19 @@ void SceneBasic_Uniform::setHDRMatrices()
 {
     glm::mat4 mv = view * model;
     HDRprog.setUniform("MVP", projection * mv);
+}
+
+void SceneBasic_Uniform::setNightVISMatrices()
+{
+    glm::mat4 mv = view * model;
+    NightVprog.setUniform("MVP", projection * mv);
+    NightVprog.setUniform("NoiseTex", 1);
+    NightVprog.setUniform("Width", width);
+	NightVprog.setUniform("Height", height);
+    NightVprog.setUniform("Radius", width / 3.5f);
+    
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, FSnoisetex);
 }
 
 // setLightUniforms: Sets the light position, direction, and other properties for the basic shader program.

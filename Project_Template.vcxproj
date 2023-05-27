@@ -167,6 +167,8 @@
     <None Include="shader\basic_alpha.vert" />
     <None Include="shader\basic_HDR.frag" />
     <None Include="shader\basic_HDR.vert" />
+    <None Include="shader\basic_NightVIS.frag" />
+    <None Include="shader\basic_NightVIS.vert" />
     <None Include="shader\basic_particle.frag" />
     <None Include="shader\basic_particle.vert" />
     <None Include="shader\basic_uniform.frag" />

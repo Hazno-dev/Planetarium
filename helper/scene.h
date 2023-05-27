@@ -63,8 +63,12 @@ public:
     void animate(bool value) { m_animate = value; }
     bool animating() { return m_animate; }
     
+	void SettKey(bool value) { tKey = value; }
+	bool GettKey() { return tKey; }
+    
 protected:
 	bool m_animate;
+    bool tKey = false;
 
     float deltaTime = 0.f;
     float elapsedTime = 0.f;

@@ -59,8 +59,6 @@ void main()
 {
     // Convert vertex position to camera space
     Position = (ModelViewMatrix * vec4(VertexPosition,1.0));
-
-    
     
     // SinWave animation if enabled 
     vec4 VecPos = vec4(VertexPosition, 1.0);

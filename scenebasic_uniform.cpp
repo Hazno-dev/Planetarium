@@ -157,6 +157,12 @@ void SceneBasic_Uniform::setupCamera()
     pitch = 0.0f;
 }
 
+//SetupParticles: This will init the buffers used for the particles
+//It creates pairs of buffers for handling the position, velocity and age of each particle (twice for smoke & fire particles)
+//It also creates multiple vertex arrays to link the first and second buffers together
+//The position and velocity values are XYZ, and the age is a single float
+//Age is populated with decreasing values based on the lifetime to gradually transition particle age.
+//Transform feedback objects are created to capture the output from the shader program and store it in the buffer
 void SceneBasic_Uniform::setupParticles()
 {
     //FIRE PARTICLES
@@ -394,7 +400,9 @@ void SceneBasic_Uniform::setupQuad()
 //Basic Uniform: This is the main shader and it uses a Vertex, Geometry and Fragment shader to perform lighting calculations on a per-pixel basis.
 //Basic Alpha: A simple shader that uses a Vertex and Fragment shader to sample from a base and alpha texture to discard pixels.
 //Basic HDR: This will perform tonemapping and gamma correction on the outputted texture from the uniform to calculate exposure.
-//Skybox: This is used simply for the skybox around the scene.
+//Basic Particle: This will perform the transform feedback particle simulation and rendering.
+//Basic NightVIS: This will perform a simple night vision effect on the outputted texture from the uniform.
+// Skybox: This is used simply for the skybox around the scene.
 void SceneBasic_Uniform::compile()
 {
 	try {

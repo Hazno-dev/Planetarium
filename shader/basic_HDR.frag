@@ -30,7 +30,7 @@ uniform mat3 xyz2rgb = mat3(
 
 uniform float Exposure = 0.12;
 uniform float White = 1000.928;
-uniform bool DoToneMap = true;
+uniform bool DoToneMap = false;
 
 //
 //Main

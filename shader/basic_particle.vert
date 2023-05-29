@@ -85,14 +85,6 @@ vec3 RandomInitialVelocty() {
 	return normalize(EmitterBasis * v) * velocity;
 }
 
-// This implementation of RandomInitialPosition worked, but created unnatural looking particle distributions.
-// Left in to show that it was implemented.
-//
-//vec3 RandomInitialVelocty() {
-//	float velocity = mix(0.1,0.5, texelFetch(RandomTex, 2 * gl_VertexID, 0).r);
-//	return EmitterBasis * vec3(velocity, velocity, velocity);
-//}
-
 vec3 RandomInitialPosition() {
 	float offset = mix(-0.1, 0.1, texelFetch(RandomTex, 2 * gl_VertexID + 1, 0).r);
 	return EmitterPosition + vec3(offset, 0, 0);
@@ -124,3 +116,11 @@ void render() {
 	TexCoord = texCoords[gl_VertexID];
 	gl_Position = Projection * vec4(posCam, 1.0);
 }
+
+// This implementation of RandomInitialPosition worked, but created unnatural looking particle distributions.
+// Left in to show that it was implemented.
+//
+//vec3 RandomInitialVelocty() {
+//	float velocity = mix(0.1,0.5, texelFetch(RandomTex, 2 * gl_VertexID, 0).r);
+//	return EmitterBasis * vec3(velocity, velocity, velocity);
+//}

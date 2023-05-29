@@ -1,2 +1,1 @@
-C:\Users\callu\Documents\COMP3015\COMP3015-CW1\x64\Debug\Project_Template.exe
 C:\Users\callu\Documents\COMP3015-CW2\COMP3015-CW2\x64\Debug\Project_Template.exe

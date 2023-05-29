@@ -227,6 +227,8 @@ float CalcFogFactor(vec4 PositionCam){
 }
 
 // Disintegration - Disintegrate the object based on noise texture
+// Replace HDRColor = PaintColor with Discard; to remove pixel and have disintegration.
+// Keep HDRColor = PaintColor to have disintegration with paint splatter.
 //
 bool Disintegration() {
     if (!bDisintegrationOn) return false;
